@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O’Leary-Sant 間質性膀胱炎指數 (ICSI/ICPI)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ... (之前的 CSS 樣式保持不變，此處省略) ... */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 8px;
+        }
+        .intro-text {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+        }
+        .user-identifier-section {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #eaf2f8;
+            border: 1px solid #aed6f1;
+            border-radius: 5px;
+        }
+        .user-identifier-section label {
+            font-weight: bold;
+            margin-right: 10px;
+            display: inline-block; /* 讓 label 和 input 在同一行 */
+        }
+        .user-identifier-section input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+         .user-identifier-section small {
+            display: block;
+            margin-top: 5px;
+            color: #555;
+        }
+
+        .question-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background-color: #fdfdfd;
+            transition: border-color 0.3s; /* 平滑過渡 */
+        }
+        .question-group.incomplete-question {
+            border: 2px solid #e74c3c !important; /* 紅色邊框強調 */
+            box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+        }
+        .question-group p.question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #34495e;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        label:hover {
+            background-color: #ecf0f1;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        button {
+            display: inline-block;
+            width: auto;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button#resetButton {
+            background-color: #e74c3c;
+        }
+        button#resetButton:hover {
+            background-color: #c0392b;
+        }
+         button#clearHistoryButton {
+            background-color: #95a5a6;
+            font-size: 0.9em;
+            padding: 8px 15px;
+        }
+        button#clearHistoryButton:hover {
+            background-color: #7f8c8d;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e8f4fd;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+        }
+        .results h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .score-display {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .score-display span {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 1.2em;
+        }
+
+        .score-bar-container {
+            display: flex;
+            width: 100%;
+            height: 30px;
+            margin: 15px 0 5px 0;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #ccc;
+        }
+        .score-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .segment-mild { background-color: #90EE90; width: 16.67%; }
+        .segment-light-moderate { background-color: #FFD700; width: 16.67%; color: #333; text-shadow: none;}
+        .segment-moderate-severe { background-color: #FFA500; width: 22.22%; }
+        .segment-severe { background-color: #F08080; width: 44.44%; }
+
+        .score-segment.highlighted-segment {
+            transform: scale(1.05);
+            box-shadow: 0 0 8px rgba(0,0,0,0.5) inset;
+            border: 2px solid #fff;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .severity-text-display {
+            font-size: 1.1em;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .severity-mild { color: #2E8B57; background-color: #e6ffe6; border: 1px solid #90EE90;}
+        .severity-light-moderate { color: #B8860B; background-color: #fff8dc; border: 1px solid #FFD700;}
+        .severity-moderate-severe { color: #CC5500; background-color: #fff0e0; border: 1px solid #FFA500;}
+        .severity-severe { color: #B22222; background-color: #ffe6e6; border: 1px solid #F08080;}
+
+        .trend-chart-container {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px dashed #bdc3c7;
+        }
+
+        .interpretation ul {
+            padding-left: 20px;
+            list-style-type: disc;
+        }
+        .interpretation li {
+            margin-bottom: 5px;
+        }
+        .warning {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+        .disclaimer {
+            margin-top: 40px;
+            font-style: italic;
+            color: #7f8c8d;
+            border-top: 1px dashed #ccc;
+            padding-top: 20px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>O’Leary-Sant 間質性膀胱炎<br>症狀及困擾指數 (ICSI/ICPI)</h1>
+
+        <div class="user-identifier-section">
+            <label for="userIdentifier">使用者識別碼：</label>
+            <input type="text" id="userIdentifier" placeholder="例如：您的暱稱或代號">
+            <small>請輸入一個識別碼以便追蹤您的個人歷史記錄。若留空，記錄將為通用記錄。</small>
+        </div>
+
+        <div class="intro-text">
+             <!-- ... (intro text) ... -->
+            <p>間質性膀胱炎 (Interstitial Cystitis, IC)，也稱為膀胱疼痛症候群 (Bladder Pain Syndrome, BPS)，是一種慢性膀胱疾病，其特徵是膀胱或骨盆區域的疼痛、壓力和不適感，伴隨有尿急和頻尿等泌尿道症狀。O'Leary-Sant 間質性膀胱炎症狀指數 (ICSI) 和困擾指數 (ICPI) 是一個常用的問卷，用於評估 IC/BPS 患者症狀的嚴重程度和對生活的影響程度。</p>
+            <p><strong>請根據您過去一個月的平均情況回答以下問題。</strong></p>
+        </div>
+
+        <form id="icForm">
+            <!-- 問題部分與之前相同 -->
+            <h2>第一部分：間質性膀胱炎症狀指數 (ICSI)</h2>
+            <p><strong>此部分最高分：20分</strong></p>
+
+            <div class="question-group" data-group-name="icsi_q1_group">
+                <p class="question-text">1. 在過去一個月，您白天感覺到需要排尿的頻率有多高？</p>
+                <label><input type="radio" name="icsi_q1" value="0" required> 0 - 從不</label>
+                <label><input type="radio" name="icsi_q1" value="1"> 1 - 很少 (每天少於1/4的時間)</label>
+                <label><input type="radio" name="icsi_q1" value="2"> 2 - 有時 (每天約1/4的時間)</label>
+                <label><input type="radio" name="icsi_q1" value="3"> 3 - 時常 (每天約一半的時間)</label>
+                <label><input type="radio" name="icsi_q1" value="4"> 4 - 大部分時間 (每天超過一半的時間)</label>
+                <label><input type="radio" name="icsi_q1" value="5"> 5 - 總是 (幾乎整天)</label>
+            </div>
+
+            <div class="question-group" data-group-name="icsi_q2_group">
+                <p class="question-text">2. 在過去一個月，您晚上是否需要起床排尿？</p>
+                <label><input type="radio" name="icsi_q2" value="0" required> 0 - 不需要</label>
+                <label><input type="radio" name="icsi_q2" value="1"> 1 - 每晚1次</label>
+                <label><input type="radio" name="icsi_q2" value="2"> 2 - 每晚2次</label>
+                <label><input type="radio" name="icsi_q2" value="3"> 3 - 每晚3次</label>
+                <label><input type="radio" name="icsi_q2" value="4"> 4 - 每晚4次</label>
+                <label><input type="radio" name="icsi_q2" value="5"> 5 - 每晚5次或以上</label>
+            </div>
+
+            <div class="question-group" data-group-name="icsi_q3_group">
+                <p class="question-text">3. 在過去一個月，您感覺到尿急 (強烈且突然的排尿需求) 的頻率有多高？</p>
+                <label><input type="radio" name="icsi_q3" value="0" required> 0 - 從不</label>
+                <label><input type="radio" name="icsi_q3" value="1"> 1 - 很少</label>
+                <label><input type="radio" name="icsi_q3" value="2"> 2 - 有時</label>
+                <label><input type="radio" name="icsi_q3" value="3"> 3 - 時常</label>
+                <label><input type="radio" name="icsi_q3" value="4"> 4 - 大部分時間</label>
+                <label><input type="radio" name="icsi_q3" value="5"> 5 - 總是</label>
+            </div>
+
+            <div class="question-group" data-group-name="icsi_q4_group">
+                <p class="question-text">4. 在過去一個月，您在膀胱或骨盆區域感覺到疼痛、壓迫感或不適的頻率有多高？</p>
+                <label><input type="radio" name="icsi_q4" value="0" required> 0 - 從不</label>
+                <label><input type="radio" name="icsi_q4" value="1"> 1 - 很少</label>
+                <label><input type="radio" name="icsi_q4" value="2"> 2 - 有時</label>
+                <label><input type="radio" name="icsi_q4" value="3"> 3 - 時常</label>
+                <label><input type="radio" name="icsi_q4" value="4"> 4 - 大部分時間</label>
+                <label><input type="radio" name="icsi_q4" value="5"> 5 - 總是</label>
+            </div>
+
+            <h2>第二部分：間質性膀胱炎困擾指數 (ICPI)</h2>
+            <p><strong>此部分最高分：16分</strong></p>
+
+            <div class="question-group" data-group-name="icpi_q1_group">
+                <p class="question-text">1. 在過去一個月，您的「白天尿頻」對您造成多大的困擾？</p>
+                <label><input type="radio" name="icpi_q1" value="0" required> 0 - 完全沒有問題</label>
+                <label><input type="radio" name="icpi_q1" value="1"> 1 - 非常小的問題</label>
+                <label><input type="radio" name="icpi_q1" value="2"> 2 - 小問題</label>
+                <label><input type="radio" name="icpi_q1" value="3"> 3 - 中等問題</label>
+                <label><input type="radio" name="icpi_q1" value="4"> 4 - 大問題</label>
+            </div>
+
+            <div class="question-group" data-group-name="icpi_q2_group">
+                <p class="question-text">2. 在過去一個月，您的「夜尿」對您造成多大的困擾？</p>
+                <label><input type="radio" name="icpi_q2" value="0" required> 0 - 完全沒有問題</label>
+                <label><input type="radio" name="icpi_q2" value="1"> 1 - 非常小的問題</label>
+                <label><input type="radio" name="icpi_q2" value="2"> 2 - 小問題</label>
+                <label><input type="radio" name="icpi_q2" value="3"> 3 - 中等問題</label>
+                <label><input type="radio" name="icpi_q2" value="4"> 4 - 大問題</label>
+            </div>
+
+            <div class="question-group" data-group-name="icpi_q3_group">
+                <p class="question-text">3. 在過去一個月，您的「尿急感」對您造成多大的困擾？</p>
+                <label><input type="radio" name="icpi_q3" value="0" required> 0 - 完全沒有問題</label>
+                <label><input type="radio" name="icpi_q3" value="1"> 1 - 非常小的問題</label>
+                <label><input type="radio" name="icpi_q3" value="2"> 2 - 小問題</label>
+                <label><input type="radio" name="icpi_q3" value="3"> 3 - 中等問題</label>
+                <label><input type="radio" name="icpi_q3" value="4"> 4 - 大問題</label>
+            </div>
+
+            <div class="question-group" data-group-name="icpi_q4_group">
+                <p class="question-text">4. 在過去一個月，您的「膀胱或骨盆區域的疼痛、壓迫感或不適」對您造成多大的困擾？</p>
+                <label><input type="radio" name="icpi_q4" value="0" required> 0 - 完全沒有問題</label>
+                <label><input type="radio" name="icpi_q4" value="1"> 1 - 非常小的問題</label>
+                <label><input type="radio" name="icpi_q4" value="2"> 2 - 小問題</label>
+                <label><input type="radio" name="icpi_q4" value="3"> 3 - 中等問題</label>
+                <label><input type="radio" name="icpi_q4" value="4"> 4 - 大問題</label>
+            </div>
+
+            <button type="button" onclick="calculateScore()">計算總分</button>
+            <button type="button" id="resetButton" onclick="resetEvaluation()" style="display:none;">重新評分</button>
+            <p id="formWarning" class="warning">請完成所有問題的填寫！未完成的題目已用紅框標示。</p>
+        </form>
+
+        <div class="results" id="resultsSection" style="display:none;">
+            <h3>您的評估結果 (<span id="currentUserIdentifier"></span>)</h3>
+            <div class="score-display">間質性膀胱炎症狀指數 (ICSI) 得分： <span id="icsiScore">0</span> / 20</div>
+            <div class="score-display">間質性膀胱炎困擾指數 (ICPI) 得分： <span id="icpiScore">0</span> / 16</div>
+            <hr>
+            <div class="score-display">總分 (ICSI + ICPI)： <span id="totalScore">0</span> / 36</div>
+
+            <h4>總分嚴重程度：</h4>
+            <div class="score-bar-container">
+                <div class="score-segment segment-mild" data-range="0-5">輕微</div>
+                <div class="score-segment segment-light-moderate" data-range="6-11">輕中度</div>
+                <div class="score-segment segment-moderate-severe" data-range="12-19">中度</div>
+                <div class="score-segment segment-severe" data-range="20-36">重度</div>
+            </div>
+            <p id="severityText" class="severity-text-display"></p>
+
+
+            <div class="interpretation">
+                 <!-- ... (interpretation text) ... -->
+                <h4>分數解釋 (僅供參考):</h4>
+                <ul>
+                    <li><strong>0 - 5 分：</strong> 可能為輕微症狀或無顯著困擾。</li>
+                    <li><strong>6 - 11 分：</strong> 輕度至中度症狀及困擾。</li>
+                    <li><strong>12 - 19 分：</strong> 中度症狀及困擾，建議諮詢專業醫療意見。</li>
+                    <li><strong>20 - 36 分：</strong> 重度症狀及困擾，強烈建議尋求專業醫療協助。</li>
+                </ul>
+                <p><strong>注意：</strong> 此問卷結果不能取代專業醫療診斷。分數越高通常表示症狀越嚴重且對生活造成的困擾越大。如果您對自己的狀況有任何疑慮，請務必諮詢醫生或相關醫療專業人員。</p>
+            </div>
+
+            <div class="trend-chart-container">
+                <h4><span id="chartUserIdentifier"></span> 症狀嚴重程度趨勢圖</h4>
+                <canvas id="trendChart"></canvas>
+                <button type="button" id="clearHistoryButton" onclick="clearHistory()">清除目前使用者歷史紀錄</button>
+            </div>
+        </div>
+
+
+        <div class="disclaimer">
+             <!-- ... (disclaimer text) ... -->
+            <p><strong>免責声明：</strong> 此網頁提供的 O’Leary-Sant 間質性膀胱炎指數問卷及結果僅為自我評估參考，不能替代專業的醫療建議、診斷或治療。如果您有任何關於醫療狀況的问题，請務必諮詢您的醫生或其他合格的醫療保健提供者。請勿因在此網頁上閱讀到的資訊而延誤尋求專業醫療建議。</p>
+        </div>
+    </div>
+
+    <script>
+        let myTrendChart = null;
+        const defaultUser = "通用"; // 預設使用者名稱
+
+        function getUserIdentifier() {
+            const userId = document.getElementById('userIdentifier').value.trim();
+            return userId === "" ? defaultUser : userId;
+        }
+
+        function getStorageKey() {
+            return `icScoresHistory_${getUserIdentifier()}`;
+        }
+
+        window.onload = function() {
+            // 從 localStorage 加載上次使用的識別碼 (如果有的話)
+            const lastUser = localStorage.getItem('lastIcUserIdentifier');
+            if (lastUser) {
+                document.getElementById('userIdentifier').value = lastUser;
+            }
+            renderTrendChart();
+            // 當用戶識別碼更改時，重新渲染圖表
+            document.getElementById('userIdentifier').addEventListener('change', () => {
+                 localStorage.setItem('lastIcUserIdentifier', document.getElementById('userIdentifier').value.trim());
+                 renderTrendChart();
+            });
+            document.getElementById('userIdentifier').addEventListener('keyup', (event) => {
+                if (event.key === "Enter") {
+                    localStorage.setItem('lastIcUserIdentifier', document.getElementById('userIdentifier').value.trim());
+                    renderTrendChart();
+                }
+            });
+        };
+
+        function getCurrentDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function saveData(totalScore) {
+            const date = getCurrentDate();
+            const storageKey = getStorageKey();
+            let scoresHistory = JSON.parse(localStorage.getItem(storageKey)) || [];
+            
+            const todayEntryIndex = scoresHistory.findIndex(entry => entry.date === date);
+            if (todayEntryIndex > -1) {
+                scoresHistory[todayEntryIndex].score = totalScore;
+            } else {
+                scoresHistory.push({ date: date, score: totalScore });
+            }
+            scoresHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+            localStorage.setItem(storageKey, JSON.stringify(scoresHistory));
+        }
+
+        function renderTrendChart() {
+            const storageKey = getStorageKey();
+            const scoresHistory = JSON.parse(localStorage.getItem(storageKey)) || [];
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            const currentUserForChart = getUserIdentifier();
+            document.getElementById('chartUserIdentifier').textContent = currentUserForChart;
+
+
+            if (myTrendChart) {
+                myTrendChart.destroy();
+            }
+
+            const chartCanvas = document.getElementById('trendChart');
+            const clearButton = document.getElementById('clearHistoryButton');
+
+            if (scoresHistory.length === 0) {
+                 chartCanvas.style.display = 'none';
+                 clearButton.style.display = 'none';
+                return;
+            }
+            chartCanvas.style.display = 'block';
+            clearButton.style.display = 'inline-block';
+
+            const labels = scoresHistory.map(entry => entry.date);
+            const dataPoints = scoresHistory.map(entry => entry.score);
+
+            myTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `嚴重程度總分 (0-36) - ${currentUserForChart}`,
+                        data: dataPoints,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, max: 36, title: { display: true, text: '嚴重程度分數'}},
+                        x: { title: { display: true, text: '日期' }}
+                    },
+                    plugins: { tooltip: { callbacks: { label: context => `分數: ${context.parsed.y}`}}}
+                }
+            });
+        }
+
+
+        function calculateScore() {
+            const form = document.getElementById('icForm');
+            const resultsSection = document.getElementById('resultsSection');
+            const formWarning = document.getElementById('formWarning');
+            const severityTextElement = document.getElementById('severityText');
+            const resetButton = document.getElementById('resetButton');
+            const currentUserDisplay = document.getElementById('currentUserIdentifier');
+
+            // 清除之前的紅框
+            const allQuestionGroups = form.querySelectorAll('.question-group');
+            allQuestionGroups.forEach(group => group.classList.remove('incomplete-question'));
+
+            let icsiScore = 0;
+            let icpiScore = 0;
+            let allAnswered = true;
+            let firstUnansweredGroup = null;
+
+            const questionSets = [
+                { questions: ['icsi_q1', 'icsi_q2', 'icsi_q3', 'icsi_q4'], scoreVar: 'icsiScore' },
+                { questions: ['icpi_q1', 'icpi_q2', 'icpi_q3', 'icpi_q4'], scoreVar: 'icpiScore' }
+            ];
+
+            questionSets.forEach(set => {
+                set.questions.forEach(qName => {
+                    const radioButtons = form.elements[qName];
+                    let groupAnswered = false;
+                    let currentScore = 0;
+                    if (radioButtons) { // 確保元素存在
+                        if (radioButtons.value) { // 單個 radio 或已選中的 radio group
+                             currentScore = parseInt(radioButtons.value);
+                             groupAnswered = true;
+                        } else if (radioButtons.length) { // radio group
+                            for (let i = 0; i < radioButtons.length; i++) {
+                                if (radioButtons[i].checked) {
+                                    currentScore = parseInt(radioButtons[i].value);
+                                    groupAnswered = true;
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        console.error(`Element with name ${qName} not found.`);
+                        allAnswered = false; // 如果元素找不到，也視為未完成
+                    }
+
+
+                    const questionGroupDiv = document.querySelector(`.question-group[data-group-name="${qName}_group"]`);
+                    if (!groupAnswered && questionGroupDiv) {
+                        allAnswered = false;
+                        questionGroupDiv.classList.add('incomplete-question');
+                        if (!firstUnansweredGroup) {
+                            firstUnansweredGroup = questionGroupDiv;
+                        }
+                    }
+
+                    if (set.scoreVar === 'icsiScore') icsiScore += currentScore;
+                    else if (set.scoreVar === 'icpiScore') icpiScore += currentScore;
+                });
+            });
+
+
+            if (!allAnswered) {
+                formWarning.style.display = 'block';
+                resultsSection.style.display = 'none';
+                resetButton.style.display = 'none';
+                if (firstUnansweredGroup) {
+                    firstUnansweredGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    formWarning.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
+            formWarning.style.display = 'none';
+            const currentUserID = getUserIdentifier();
+            currentUserDisplay.textContent = currentUserID;
+
+
+            const totalScore = icsiScore + icpiScore;
+
+            document.getElementById('icsiScore').textContent = icsiScore;
+            document.getElementById('icpiScore').textContent = icpiScore;
+            document.getElementById('totalScore').textContent = totalScore;
+
+            saveData(totalScore);
+            renderTrendChart();
+
+            const segments = document.querySelectorAll('.score-bar-container .score-segment');
+            segments.forEach(seg => seg.classList.remove('highlighted-segment'));
+
+            let severityDescription = "";
+            let severityClass = "";
+
+            if (totalScore <= 5) {
+                document.querySelector('.score-segment.segment-mild').classList.add('highlighted-segment');
+                severityDescription = "您的症狀及困擾程度屬於：輕微";
+                severityClass = "severity-mild";
+            } else if (totalScore <= 11) {
+                document.querySelector('.score-segment.segment-light-moderate').classList.add('highlighted-segment');
+                severityDescription = "您的症狀及困擾程度屬於：輕中度";
+                severityClass = "severity-light-moderate";
+            } else if (totalScore <= 19) {
+                document.querySelector('.score-segment.segment-moderate-severe').classList.add('highlighted-segment');
+                severityDescription = "您的症狀及困擾程度屬於：中度";
+                severityClass = "severity-moderate-severe";
+            } else {
+                document.querySelector('.score-segment.segment-severe').classList.add('highlighted-segment');
+                severityDescription = "您的症狀及困擾程度屬於：重度";
+                severityClass = "severity-severe";
+            }
+
+            severityTextElement.textContent = severityDescription;
+            severityTextElement.className = 'severity-text-display';
+            severityTextElement.classList.add(severityClass);
+
+            resultsSection.style.display = 'block';
+            resetButton.style.display = 'inline-block';
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function resetEvaluation() {
+            document.getElementById('icForm').reset();
+            const allQuestionGroups = document.querySelectorAll('.question-group');
+            allQuestionGroups.forEach(group => group.classList.remove('incomplete-question'));
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('resetButton').style.display = 'none';
+            document.getElementById('formWarning').style.display = 'none';
+            window.scrollTo({ top: document.getElementById('userIdentifier').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        function clearHistory() {
+            const currentUserID = getUserIdentifier();
+            if (confirm(`您確定要清除使用者 "${currentUserID}" 的所有歷史評分紀錄嗎？此操作無法復原。`)) {
+                localStorage.removeItem(getStorageKey());
+                renderTrendChart();
+            }
+        }
+    </script>
+
+</body>
+</html>
